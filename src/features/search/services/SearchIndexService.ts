@@ -4,7 +4,7 @@ import type { ConversationIndexEntry, SearchIndexSnapshot, SearchResult } from '
 
 const STORAGE_KEY = 'gvSearchIndex';
 const STORAGE_VERSION: SearchIndexSnapshot['version'] = 1;
-const MAX_ENTRIES = 2000; // Keeps local index size bounded (~a few MB at most) for storage/perf.
+const MAX_ENTRIES = 2000; // Keeps local index size bounded (~2k entries fits typical extension storage budgets).
 const SAVE_DEBOUNCE_MS = 800;
 
 type Listener = () => void;

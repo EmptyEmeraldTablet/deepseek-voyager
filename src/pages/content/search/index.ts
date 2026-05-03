@@ -192,7 +192,7 @@ function extractEntriesFromPayload(payload: unknown): ConversationIndexEntry[] {
             id: idRaw,
             title,
             snippet: snippetRaw ? normalizeText(snippetRaw) : undefined,
-            updatedAt: updatedRaw ?? Date.now(),
+            updatedAt: updatedRaw ?? 0,
           });
         }
       }
@@ -353,8 +353,8 @@ function injectHistoryInterceptor(): void {
   // Execute in page context and clean up the script element afterward.
   script.textContent = `
 (() => {
-  if (window.__gvHistoryInterceptor) return;
-  window.__gvHistoryInterceptor = true;
+  if (window.__deepseekVoyagerHistoryInterceptor) return;
+  window.__deepseekVoyagerHistoryInterceptor = true;
   const EVENT_NAME = '${HISTORY_EVENT}';
   const TRACK_REGEX = new RegExp('${TRACK_URL_PATTERN}', 'i');
   const shouldTrack = (rawUrl) => {
@@ -406,7 +406,7 @@ function injectHistoryInterceptor(): void {
         clone.json().then((data) => {
           if (!shouldTrack(url)) return;
           dispatch({ url, request: { url, method, headers, body }, data });
-        }).catch(() => {});
+        }).catch(() => { /* ignore non-JSON responses */ });
       } catch {}
       return response;
     };
@@ -457,6 +457,7 @@ class HistoryCollector {
   private isActive = false;
   private lastEntriesCount = 0;
   private started = false;
+  private visibilityHandler: (() => void) | null = null;
 
   constructor(indexService: SearchIndexService) {
     this.indexService = indexService;
@@ -475,6 +476,14 @@ class HistoryCollector {
     this.started = true;
     injectHistoryInterceptor();
     window.addEventListener(HISTORY_EVENT, this.handleHistoryResponse as EventListener);
+    if (!this.visibilityHandler) {
+      this.visibilityHandler = () => {
+        if (this.isActive && !document.hidden) {
+          this.fetchNextPage();
+        }
+      };
+      document.addEventListener('visibilitychange', this.visibilityHandler);
+    }
     waitForSidebarContainer()
       .then((sidebar) => {
         if (!sidebar) return;
@@ -487,6 +496,10 @@ class HistoryCollector {
   stop(): void {
     window.removeEventListener(HISTORY_EVENT, this.handleHistoryResponse as EventListener);
     this.started = false;
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityHandler = null;
+    }
     if (this.sidebarObserver) {
       this.sidebarObserver.disconnect();
       this.sidebarObserver = null;
@@ -591,6 +604,7 @@ class HistoryCollector {
 
   private async fetchNextPage(): Promise<void> {
     if (!this.isActive || this.activeInFlight) return;
+    if (document.hidden) return;
     if (!this.lastRequest || !this.pagination) {
       this.notifyStatus({ status: 'waiting' });
       return;
