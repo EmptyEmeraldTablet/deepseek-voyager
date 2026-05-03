@@ -302,18 +302,8 @@ export async function startSearch(): Promise<void> {
   input.type = 'search';
   input.placeholder = t('search_placeholder');
 
-  const button = document.createElement('button');
-  button.className = 'gv-search-index-btn';
-  button.type = 'button';
-  button.textContent = t('search_index_start');
-
-  const status = document.createElement('span');
-  status.className = 'gv-search-status';
-
   bar.appendChild(input);
-  bar.appendChild(button);
   container.appendChild(bar);
-  container.appendChild(status);
 
   const results = document.createElement('div');
   results.className = 'gv-search-results';
@@ -325,25 +315,6 @@ export async function startSearch(): Promise<void> {
   await indexService.load();
   const historyCollector = new HistoryCollector(indexService);
 
-  const updateStatus = (payload: StatusPayload) => {
-    switch (payload.status) {
-      case 'indexing':
-        status.textContent = t('search_indexing');
-        break;
-      case 'done':
-        status.textContent = t('search_index_done');
-        break;
-      default:
-        status.textContent = '';
-    }
-  };
-
-  historyCollector.onStatusChange((payload) => {
-    updateStatus(payload);
-    button.textContent = historyCollector.getActiveState()
-      ? t('search_index_stop')
-      : t('search_index_start');
-  });
   historyCollector.onIndexUpdate(() => {
     if (input.value) {
       renderResults(results, indexService.search(input.value), input.value, t);
@@ -365,13 +336,6 @@ export async function startSearch(): Promise<void> {
       input.value = '';
       renderResults(results, [], '', t);
     }
-  });
-
-  button.addEventListener('click', () => {
-    historyCollector.toggleActive();
-    button.textContent = historyCollector.getActiveState()
-      ? t('search_index_stop')
-      : t('search_index_start');
   });
 }
 

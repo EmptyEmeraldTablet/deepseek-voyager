@@ -1,10 +1,10 @@
 {
   "extName": {
-    "message": "Gemini Voyager",
+    "message": "DeepSeek Voyager",
     "description": "Extension name"
   },
   "extDescription": {
-    "message": "Maps your Gemini chats on a timeline.",
+    "message": "Supercharge DeepSeek with timeline navigation, folder management, and conversation search.",
     "description": "Extension description"
   },
   "scrollMode": {

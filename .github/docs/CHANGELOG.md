@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Conversation search** now uses pure DOM-based indexing — removed network interception due to Chrome extension security restrictions
+  - Conversations are indexed automatically from sidebar DOM
+  - To index more history, scroll the sidebar; DeepSeek loads more as you scroll
+  - Removed manual "Index history" button (auto-indexing on DOM changes)
+- **Extension name** fixed to "DeepSeek Voyager" in all locales and popup
+
 ### Added
 - **Conversation search** 🔍
   - Full-text search across conversation history (title + content)

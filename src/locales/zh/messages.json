@@ -1,10 +1,10 @@
 {
   "extName": {
-    "message": "Gemini Voyager",
+    "message": "DeepSeek Voyager",
     "description": "扩展程序名称"
   },
   "extDescription": {
-    "message": "在时间线上映射您的 Gemini 聊天记录。",
+    "message": "为 DeepSeek 提供时间轴导航、文件夹管理和对话搜索的增强工具。",
     "description": "扩展程序描述"
   },
   "scrollMode": {

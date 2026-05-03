@@ -37,13 +37,11 @@ Manage conversations with drag-and-drop folders:
 
 ### 🔍 Conversation Search
 
-Full-text search across your conversation history:
-- Search by title and content snippet
-- Local search index built from DeepSeek's history API
-- Real-time results with highlighted keyword matches
-- Index progress indicator with start/stop control
-- Automatic index management (up to 2000 entries, deduplication, LRU eviction)
-- Dark/light theme support
+Search your conversations from the sidebar:
+- Type in the search box to filter indexed conversations by title
+- Conversations are indexed automatically from the sidebar DOM
+- **For complete indexing**: scroll down the sidebar conversation list — DeepSeek loads more history as you scroll, and the extension indexes them automatically
+- Automatic index management (up to 2000 entries, deduplication)
 
 ### 💾 Chat Export (JSON + Markdown/PDF)
 
