@@ -114,7 +114,8 @@ export const DEEPSEEK_SELECTORS = {
  */
 export function tryFindElement(
   config: SelectorConfig,
-  parent: Element | Document = document
+  parent: Element | Document = document,
+  quiet = false
 ): Element | null {
   // 先尝试主选择器
   let element = parent.querySelector(config.primary);
@@ -125,9 +126,11 @@ export function tryFindElement(
     try {
       element = parent.querySelector(fallback);
       if (element) {
-        console.warn(
-          `[DeepSeek Voyager] ${config.description} 使用后备选择器: ${fallback}`
-        );
+        if (!quiet) {
+          console.warn(
+            `[DeepSeek Voyager] ${config.description} 使用后备选择器: ${fallback}`
+          );
+        }
         return element;
       }
     } catch (e) {
@@ -136,7 +139,9 @@ export function tryFindElement(
     }
   }
 
-  console.warn(`[DeepSeek Voyager] 无法找到 ${config.description}`);
+  if (!quiet) {
+    console.warn(`[DeepSeek Voyager] 无法找到 ${config.description}`);
+  }
   return null;
 }
 
@@ -145,7 +150,8 @@ export function tryFindElement(
  */
 export function tryFindElements(
   config: SelectorConfig,
-  parent: Element | Document = document
+  parent: Element | Document = document,
+  quiet = false
 ): NodeListOf<Element> | Element[] {
   // 先尝试主选择器
   let elements = parent.querySelectorAll(config.primary);
@@ -156,9 +162,11 @@ export function tryFindElements(
     try {
       elements = parent.querySelectorAll(fallback);
       if (elements.length > 0) {
-        console.warn(
-          `[DeepSeek Voyager] ${config.description} 使用后备选择器: ${fallback}`
-        );
+        if (!quiet) {
+          console.warn(
+            `[DeepSeek Voyager] ${config.description} 使用后备选择器: ${fallback}`
+          );
+        }
         return elements;
       }
     } catch (e) {
@@ -166,7 +174,9 @@ export function tryFindElements(
     }
   }
 
-  console.warn(`[DeepSeek Voyager] 无法找到 ${config.description}`);
+  if (!quiet) {
+    console.warn(`[DeepSeek Voyager] 无法找到 ${config.description}`);
+  }
   return [];
 }
 
