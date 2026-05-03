@@ -110,27 +110,27 @@ jobs:
       - name: Archive dist_chrome
         run: |
           cd dist_chrome
-          zip -r ../gemini-voyager-chrome-${{ steps.tag.outputs.name }}.zip .
+          zip -r ../deepseek-voyager-chrome-${{ steps.tag.outputs.name }}.zip .
 
       - name: Archive dist_firefox
         run: |
           cd dist_firefox
-          zip -r ../gemini-voyager-firefox-${{ steps.tag.outputs.name }}.zip .
+          zip -r ../deepseek-voyager-firefox-${{ steps.tag.outputs.name }}.zip .
 
       - name: Archive dist_safari
         run: |
           cd dist_safari
-          zip -r ../gemini-voyager-safari-${{ steps.tag.outputs.name }}.zip .
+          zip -r ../deepseek-voyager-safari-${{ steps.tag.outputs.name }}.zip .
 
       # Optional: upload to Actions artifacts (can be removed if not needed)
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: gemini-voyager-artifacts-${{ steps.tag.outputs.name }}
+          name: deepseek-voyager-artifacts-${{ steps.tag.outputs.name }}
           path: |
-            gemini-voyager-chrome-${{ steps.tag.outputs.name }}.zip
-            gemini-voyager-firefox-${{ steps.tag.outputs.name }}.zip
-            gemini-voyager-safari-${{ steps.tag.outputs.name }}.zip
+            deepseek-voyager-chrome-${{ steps.tag.outputs.name }}.zip
+            deepseek-voyager-firefox-${{ steps.tag.outputs.name }}.zip
+            deepseek-voyager-safari-${{ steps.tag.outputs.name }}.zip
 
       - name: Generate release body
         id: release_body
@@ -146,11 +146,11 @@ jobs:
           ## 📥 Installation
 
           Download the latest version for your browser:
-          - **Chrome/Edge/Opera/Brave**: `gemini-voyager-chrome-${{ steps.tag.outputs.name }}.zip`
-          - **Firefox**: `gemini-voyager-firefox-${{ steps.tag.outputs.name }}.zip`
-          - **Safari**: `gemini-voyager-safari-${{ steps.tag.outputs.name }}.zip`
+          - **Chrome/Edge/Opera/Brave**: `deepseek-voyager-chrome-${{ steps.tag.outputs.name }}.zip`
+          - **Firefox**: `deepseek-voyager-firefox-${{ steps.tag.outputs.name }}.zip`
+          - **Safari**: `deepseek-voyager-safari-${{ steps.tag.outputs.name }}.zip`
 
-          See [README](https://github.com/Nagi-ovo/gemini-voyager#-installation) for detailed installation instructions.
+          See [README](https://github.com/EmptyEmeraldTablet/deepseek-voyager#-installation) for detailed installation instructions.
 
           ---
 
@@ -164,10 +164,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            gemini-voyager-chrome-${{ steps.tag.outputs.name }}.zip
-            gemini-voyager-firefox-${{ steps.tag.outputs.name }}.zip
-            gemini-voyager-safari-${{ steps.tag.outputs.name }}.zip
-          name: Gemini Voyager ${{ steps.tag.outputs.name }}
+            deepseek-voyager-chrome-${{ steps.tag.outputs.name }}.zip
+            deepseek-voyager-firefox-${{ steps.tag.outputs.name }}.zip
+            deepseek-voyager-safari-${{ steps.tag.outputs.name }}.zip
+          name: DeepSeek Voyager ${{ steps.tag.outputs.name }}
           tag_name: ${{ steps.tag.outputs.name }}
           body: ${{ steps.release_body.outputs.body }}
           generate_release_notes: true

@@ -32,9 +32,17 @@ export const DEEPSEEK_SELECTORS = {
 
   /**
    * 侧边栏容器选择器
+   *
+   * 实际 DOM 结构（已验证）：
+   *   - 侧边栏：    left ~10-12px,  width ~236-240px  (class: _3586175 ds-scroll-area)
+   *   - 聊天区域：   left ~261px,    width ~775px       (class: _765a5cd ds-scroll-area)
+   *
+   * 注意：.ds-scroll-area 在主聊天区域也存在，因此实际查找时
+   * 使用 findSidebarContainer() 通过位置启发式区分。
+   * 此配置仅在位置启发式失败时作为后备使用。
    */
   sidebarContainer: {
-    primary: '.ds-scroll-area',  // DeepSeek 使用的滚动区域类名
+    primary: '.ds-scroll-area',
     fallbacks: [
       '[class*="ds-scroll"]',
       '[class*="sidebar"]',
@@ -45,15 +53,28 @@ export const DEEPSEEK_SELECTORS = {
   } as SelectorConfig,
 
   /**
-   * 对话项选择器（最稳定）
-   * 使用 href 属性匹配，因为 URL 结构相对稳定
+   * 对话项选择器
+   *
+   * 实际 DOM 结构（已验证）：
+   *   <a class="_546d736 b64fb9ae" href="/a/chat/s/{uuid}">
+   *     <div class="c08e6e93">对话标题</div>
+   *   </a>
+   *
+   * 主选择器 a[href*="/a/chat/s/"] 可匹配侧边栏对话链接。
+   * 注意：首次页面加载时对话列表可能尚未通过 API 加载，
+   * 因此扫描需要等待 DOM 更新。
    */
   conversationItem: {
-    primary: 'a[href*="/a/chat/s/"]',  // 通过 URL 模式匹配
+    primary: 'a[href*="/a/chat/s/"]',  // <a href="/a/chat/s/{uuid}"> 已验证
     fallbacks: [
       'a[href*="/chat/"]',
+      'a[href*="/s/"]',
       '[class*="conversation"]',
       '[class*="chat-item"]',
+      '[class*="session-item"]',
+      '[data-test-id="conversation"]',
+      '[role="listitem"]',
+      'button[class*="conversation"]',
     ],
     description: '侧边栏对话项',
   } as SelectorConfig,

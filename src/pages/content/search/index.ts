@@ -43,6 +43,9 @@ const HISTORY_EVENT = 'gv:historyResponse';
 const INTERCEPTOR_ID = 'gv-history-interceptor';
 // Product requirement: active indexing polls every 30 seconds to reduce rate-limit risk.
 const ACTIVE_POLL_INTERVAL_MS = 30000;
+// Maximum empty sidebar scans before the observer auto-disconnects.
+// This prevents infinite thrashing when the selector doesn't match the DOM.
+const MAX_EMPTY_SCANS = 10;
 const SCAN_DEBOUNCE_MS = 300;
 const SIDEBAR_WAIT_TIMEOUT_MS = 20000;
 const SIDEBAR_POLL_INTERVAL_MS = 500;
@@ -458,6 +461,7 @@ class HistoryCollector {
   private lastEntriesCount = 0;
   private started = false;
   private visibilityHandler: (() => void) | null = null;
+  private emptyScanCount = 0;
 
   constructor(indexService: SearchIndexService) {
     this.indexService = indexService;
@@ -548,8 +552,11 @@ class HistoryCollector {
 
   private setupSidebarObserver(sidebar: HTMLElement): void {
     if (this.sidebarObserver) this.sidebarObserver.disconnect();
+    this.emptyScanCount = 0;
     this.sidebarObserver = new MutationObserver(() => this.scheduleSidebarScan());
-    this.sidebarObserver.observe(sidebar, { childList: true, subtree: true });
+    // Use childList only (not subtree) to reduce noise from deep DOM changes.
+    // The conversation list is a direct child of the sidebar, so childList is sufficient.
+    this.sidebarObserver.observe(sidebar, { childList: true, subtree: false });
   }
 
   private scheduleSidebarScan(): void {
@@ -562,16 +569,39 @@ class HistoryCollector {
 
   private scanSidebar(): void {
     const items = tryFindElements(DEEPSEEK_SELECTORS.conversationItem) as Element[];
-    if (!items || items.length === 0) return;
+    if (!items || items.length === 0) {
+      this.emptyScanCount++;
+      // Auto-disconnect observer after too many empty scans to prevent thrashing.
+      // This happens when the selector doesn't match the current DOM structure.
+      if (this.emptyScanCount >= MAX_EMPTY_SCANS && this.sidebarObserver) {
+        this.sidebarObserver.disconnect();
+        this.sidebarObserver = null;
+      }
+      return;
+    }
+    // Reset counter on successful scan
+    this.emptyScanCount = 0;
     const entries: ConversationIndexEntry[] = [];
     items.forEach((item) => {
-      const anchor = item as HTMLAnchorElement;
-      const href = anchor.getAttribute('href') || '';
-      const id = extractConversationId(href);
+      // Try to get href from the item itself (if it's an <a>), or from a child <a>
+      let anchorEl = item.tagName === 'A' ? (item as HTMLAnchorElement) : null;
+      if (!anchorEl) {
+        anchorEl = item.querySelector<HTMLAnchorElement>('a');
+      }
+      const href = anchorEl?.getAttribute('href') || '';
+      let id = extractConversationId(href);
+      // If href-based extraction failed, try data attributes (for non-<a> items like div/button)
+      if (!id && item.tagName !== 'A') {
+        const dataId = item.getAttribute('data-conversation-id') ||
+                       item.getAttribute('data-id') ||
+                       item.getAttribute('data-session-id') ||
+                       '';
+        if (dataId) id = dataId;
+      }
       if (!id) return;
       const titleCandidate =
-        normalizeText(anchor.querySelector('div, span')?.textContent || '') ||
-        normalizeText(anchor.textContent || '');
+        normalizeText(item.querySelector('div, span')?.textContent || '') ||
+        normalizeText(item.textContent || '');
       if (!titleCandidate) return;
       entries.push({
         id,
@@ -649,9 +679,12 @@ async function waitForSidebarContainer(): Promise<HTMLElement | null> {
   return new Promise((resolve) => {
     const startedAt = Date.now();
     const attempt = () => {
-      const container = tryFindElement(DEEPSEEK_SELECTORS.sidebarContainer);
-      if (container) {
-        resolve(container as HTMLElement);
+      // Try to find a container that looks like the sidebar (not the main chat area).
+      // The sidebar typically contains conversation links/data, while the main chat area
+      // contains message turns. We prefer containers that have conversation-like elements.
+      const sidebar = findSidebarContainer();
+      if (sidebar) {
+        resolve(sidebar);
         return;
       }
       if (Date.now() - startedAt > SIDEBAR_WAIT_TIMEOUT_MS) {
@@ -662,6 +695,48 @@ async function waitForSidebarContainer(): Promise<HTMLElement | null> {
     };
     attempt();
   });
+}
+
+/**
+ * Find the sidebar container, preferring the actual sidebar over the main chat area.
+ * Both can match .ds-scroll-area, so we disambiguate by position and width.
+ *
+ * DeepSeek layout (verified via DOM inspection):
+ *   - Sidebar:   left ~10-12px,  width ~236-240px  (class: _3586175 ds-scroll-area)
+ *   - Chat area:  left ~261px,    width ~775px       (class: _765a5cd ds-scroll-area)
+ *   - Text input: left ~294px,    width ~709px       (class: _27c9245 ds-scroll-area)
+ */
+function findSidebarContainer(): HTMLElement | null {
+  // Strategy 1: Positional heuristic — find .ds-scroll-area on the left (sidebar)
+  const areas = document.querySelectorAll<HTMLElement>('.ds-scroll-area');
+  let bestMatch: HTMLElement | null = null;
+  for (const area of areas) {
+    const rect = area.getBoundingClientRect();
+    if (rect.left < 50 && rect.width > 100 && rect.width < 300 && !bestMatch) {
+      bestMatch = area;
+    }
+  }
+  if (bestMatch) return bestMatch;
+
+  // Strategy 2: Find the element containing the most conversation links
+  const candidates = document.querySelectorAll<HTMLElement>(
+    '.ds-scroll-area, [class*="sidebar"], nav, aside'
+  );
+  let bestScore = -1;
+  candidates.forEach((el) => {
+    const links = el.querySelectorAll('a[href*="/a/chat/s/"], a[href*="/chat/"]');
+    if (links.length > bestScore) {
+      bestScore = links.length;
+      bestMatch = el;
+    }
+  });
+  if (bestMatch) return bestMatch;
+
+  // Strategy 3: Fall back to the original selector
+  const container = tryFindElement(DEEPSEEK_SELECTORS.sidebarContainer);
+  if (container) return container as HTMLElement;
+
+  return null;
 }
 
 function renderResults(
