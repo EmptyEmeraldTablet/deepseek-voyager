@@ -1,10 +1,5 @@
 import browser from 'webextension-polyfill';
 
-import type { Folder, FolderData, ConversationReference, DragData } from './types';
-
-import { FolderImportExportService } from '@/features/folder/services/FolderImportExportService';
-import type { ImportStrategy } from '@/features/folder/types/import-export';
-import { initI18n, getTranslationSync } from '@/utils/i18n';
 import {
   DEEPSEEK_SELECTORS,
   tryFindElement,
@@ -12,7 +7,13 @@ import {
   extractConversationId,
   buildConversationUrl,
 } from '../deepseek/selectors';
+
 import { createIcon, getIconHTML } from './icons';
+import type { Folder, FolderData, ConversationReference, DragData } from './types';
+
+import { FolderImportExportService } from '@/features/folder/services/FolderImportExportService';
+import type { ImportStrategy } from '@/features/folder/types/import-export';
+import { initI18n, getTranslationSync } from '@/utils/i18n';
 
 const STORAGE_KEY = 'dsFolderData';  // DeepSeek Folder Data
 const IS_DEBUG = false; // Set to true to enable debug logging
