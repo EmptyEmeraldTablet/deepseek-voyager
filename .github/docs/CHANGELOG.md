@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Conversation search** 🔍
+  - Full-text search across conversation history (title + content)
+  - Local search index built from DeepSeek's history API
+  - Real-time search results with highlighted keyword matches
+  - Index progress indicator with start/stop control
+  - Supports dark/light theme
+  - Bounded index size (up to 2000 entries) for efficient storage
+
 - **Safari browser support** 🎉
   - Safari build configuration and development mode
   - Installation guide ([EN](safari/INSTALLATION.md) | [中文](safari/INSTALLATION_ZH.md))

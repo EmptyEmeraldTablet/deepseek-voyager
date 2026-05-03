@@ -35,6 +35,16 @@ Manage conversations with drag-and-drop folders:
 - Instant navigation without page reloads
 - Import/export for cross-device sync
 
+### 🔍 Conversation Search
+
+Full-text search across your conversation history:
+- Search by title and content snippet
+- Local search index built from DeepSeek's history API
+- Real-time results with highlighted keyword matches
+- Index progress indicator with start/stop control
+- Automatic index management (up to 2000 entries, deduplication, LRU eviction)
+- Dark/light theme support
+
 ### 💾 Chat Export (JSON + Markdown/PDF)
 
 Export conversations as:
