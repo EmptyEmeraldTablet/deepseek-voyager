@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "DeepSeek Voyager",
   "description": "Supercharge your DeepSeek experience with timeline navigation, folder organization, and chat export.",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "action": {
     "default_popup": "src/pages/popup/index.html",
     "default_icon": {
