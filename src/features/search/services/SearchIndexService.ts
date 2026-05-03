@@ -4,7 +4,7 @@ import type { ConversationIndexEntry, SearchIndexSnapshot, SearchResult } from '
 
 const STORAGE_KEY = 'gvSearchIndex';
 const STORAGE_VERSION: SearchIndexSnapshot['version'] = 1;
-const MAX_ENTRIES = 2000;
+const MAX_ENTRIES = 2000; // Limit index size to keep storage usage and search performance bounded.
 const SAVE_DEBOUNCE_MS = 800;
 
 type Listener = () => void;

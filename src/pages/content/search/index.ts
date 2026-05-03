@@ -41,6 +41,7 @@ type StatusPayload = {
 
 const HISTORY_EVENT = 'gv:historyResponse';
 const INTERCEPTOR_ID = 'gv-history-interceptor';
+// Requirement: active indexing should poll every 30 seconds to reduce rate-limit risk.
 const ACTIVE_POLL_INTERVAL_MS = 30000;
 const SCAN_DEBOUNCE_MS = 300;
 
@@ -454,7 +455,7 @@ class HistoryCollector {
   start(): void {
     injectHistoryInterceptor();
     window.addEventListener(HISTORY_EVENT, this.handleHistoryResponse as EventListener);
-    this.waitForSidebar()
+    waitForSidebarContainer()
       .then((sidebar) => {
         if (!sidebar) return;
         this.setupSidebarObserver(sidebar);
@@ -509,20 +510,6 @@ class HistoryCollector {
 
   private notifyStatus(payload: StatusPayload): void {
     if (this.statusCallback) this.statusCallback(payload);
-  }
-
-  private async waitForSidebar(): Promise<HTMLElement | null> {
-    return new Promise((resolve) => {
-      const attempt = () => {
-        const container = tryFindElement(DEEPSEEK_SELECTORS.sidebarContainer);
-        if (container) {
-          resolve(container as HTMLElement);
-        } else {
-          setTimeout(attempt, 500);
-        }
-      };
-      attempt();
-    });
   }
 
   private setupSidebarObserver(sidebar: HTMLElement): void {
