@@ -1,5 +1,6 @@
-import { TimelineManager } from './manager';
 import { isConversationRoute } from '../deepseek/selectors';
+
+import { TimelineManager } from './manager';
 
 function isDeepSeekConversationRoute(pathname = location.pathname): boolean {
   // DeepSeek 对话路由格式: /a/chat/s/[UUID]
