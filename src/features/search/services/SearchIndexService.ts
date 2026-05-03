@@ -39,7 +39,6 @@ export class SearchIndexService {
 
   async load(): Promise<void> {
     if (this.loaded) return;
-    this.loaded = true;
     const fallback: SearchIndexSnapshot = {
       version: STORAGE_VERSION,
       updatedAt: Date.now(),
@@ -60,11 +59,16 @@ export class SearchIndexService {
       snapshot = raw;
     }
 
-    if (snapshot?.version !== STORAGE_VERSION || !snapshot?.entries) return;
+    if (snapshot?.version !== STORAGE_VERSION || !snapshot?.entries) {
+      this.entries.clear();
+      this.loaded = true;
+      return;
+    }
     Object.entries(snapshot.entries).forEach(([id, entry]) => {
       if (!id || !entry) return;
       this.entries.set(id, normalizeEntry(entry));
     });
+    this.loaded = true;
   }
 
   subscribe(listener: Listener): () => void {
@@ -155,6 +159,7 @@ export class SearchIndexService {
 
   private scheduleSave(): void {
     if (this.saveTimer) return;
+    // Debounce saves to batch rapid updates; latest map state is persisted on flush.
     this.saveTimer = window.setTimeout(() => {
       this.saveTimer = null;
       this.save().catch(() => undefined);

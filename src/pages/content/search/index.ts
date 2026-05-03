@@ -44,6 +44,9 @@ const INTERCEPTOR_ID = 'gv-history-interceptor';
 // Requirement: active indexing should poll every 30 seconds to reduce rate-limit risk.
 const ACTIVE_POLL_INTERVAL_MS = 30000;
 const SCAN_DEBOUNCE_MS = 300;
+const SIDEBAR_WAIT_TIMEOUT_MS = 20000;
+const SIDEBAR_POLL_INTERVAL_MS = 500;
+const DEEPSEEK_ORIGIN = 'https://chat.deepseek.com';
 
 function normalizeText(value: string | null | undefined): string {
   return String(value || '').replace(/\s+/g, ' ').trim();
@@ -351,6 +354,16 @@ function injectHistoryInterceptor(): void {
   if (window.__gvHistoryInterceptor) return;
   window.__gvHistoryInterceptor = true;
   const EVENT_NAME = '${HISTORY_EVENT}';
+  const TRACK_REGEX = /chat|history|session|conversation/i;
+  const shouldTrack = (rawUrl) => {
+    try {
+      const u = new URL(rawUrl, location.origin);
+      if (u.origin !== location.origin) return false;
+      return TRACK_REGEX.test(u.pathname + u.search);
+    } catch {
+      return false;
+    }
+  };
   const toHeaders = (headers) => {
     const out = {};
     if (!headers) return out;
@@ -389,6 +402,7 @@ function injectHistoryInterceptor(): void {
         const body = init && typeof init.body === 'string' ? init.body : null;
         const clone = response.clone();
         clone.json().then((data) => {
+          if (!shouldTrack(url)) return;
           dispatch({ url, request: { url, method, headers, body }, data });
         }).catch(() => {});
       } catch {}
@@ -411,6 +425,7 @@ function injectHistoryInterceptor(): void {
       try {
         const text = xhr.responseText;
         const data = JSON.parse(text);
+        if (!shouldTrack(xhr.__gvUrl)) return;
         dispatch({
           url: xhr.__gvUrl,
           request: { url: xhr.__gvUrl, method: xhr.__gvMethod || 'GET', headers: {}, body: typeof body === 'string' ? body : null },
@@ -439,6 +454,7 @@ class HistoryCollector {
   private activeInFlight = false;
   private isActive = false;
   private lastEntriesCount = 0;
+  private started = false;
 
   constructor(indexService: SearchIndexService) {
     this.indexService = indexService;
@@ -453,6 +469,8 @@ class HistoryCollector {
   }
 
   start(): void {
+    if (this.started) return;
+    this.started = true;
     injectHistoryInterceptor();
     window.addEventListener(HISTORY_EVENT, this.handleHistoryResponse as EventListener);
     waitForSidebarContainer()
@@ -466,6 +484,7 @@ class HistoryCollector {
 
   stop(): void {
     window.removeEventListener(HISTORY_EVENT, this.handleHistoryResponse as EventListener);
+    this.started = false;
     if (this.sidebarObserver) {
       this.sidebarObserver.disconnect();
       this.sidebarObserver = null;
@@ -543,7 +562,7 @@ class HistoryCollector {
         id,
         title: titleCandidate,
         updatedAt: Date.now(),
-        url: href.startsWith('http') ? href : `https://chat.deepseek.com${href}`,
+        url: href.startsWith('http') ? href : `${DEEPSEEK_ORIGIN}${href}`,
       });
     });
     if (this.indexService.upsert(entries)) {
@@ -612,12 +631,17 @@ class HistoryCollector {
 
 async function waitForSidebarContainer(): Promise<HTMLElement | null> {
   return new Promise((resolve) => {
+    const startedAt = Date.now();
     const attempt = () => {
       const container = tryFindElement(DEEPSEEK_SELECTORS.sidebarContainer);
       if (container) {
         resolve(container as HTMLElement);
+        return;
+      }
+      if (Date.now() - startedAt > SIDEBAR_WAIT_TIMEOUT_MS) {
+        resolve(null);
       } else {
-        setTimeout(attempt, 500);
+        setTimeout(attempt, SIDEBAR_POLL_INTERVAL_MS);
       }
     };
     attempt();
