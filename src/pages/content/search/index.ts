@@ -41,12 +41,13 @@ type StatusPayload = {
 
 const HISTORY_EVENT = 'gv:historyResponse';
 const INTERCEPTOR_ID = 'gv-history-interceptor';
-// Requirement: active indexing should poll every 30 seconds to reduce rate-limit risk.
+// Product requirement: active indexing polls every 30 seconds to reduce rate-limit risk.
 const ACTIVE_POLL_INTERVAL_MS = 30000;
 const SCAN_DEBOUNCE_MS = 300;
 const SIDEBAR_WAIT_TIMEOUT_MS = 20000;
 const SIDEBAR_POLL_INTERVAL_MS = 500;
 const DEEPSEEK_ORIGIN = 'https://chat.deepseek.com';
+const TRACK_URL_PATTERN = 'chat|history|session|conversation';
 
 function normalizeText(value: string | null | undefined): string {
   return String(value || '').replace(/\s+/g, ' ').trim();
@@ -185,7 +186,7 @@ function extractEntriesFromPayload(payload: unknown): ConversationIndexEntry[] {
         const snippetRaw = readStringField(obj, snippetKeys) || undefined;
         const updatedRaw =
           updatedKeys.map((key) => parseTimestamp(obj[key])).find((v) => v !== null) || null;
-        const title = normalizeText(titleRaw || snippetRaw || 'Untitled');
+        const title = normalizeText(titleRaw || snippetRaw || '');
         if (title) {
           entries.set(idRaw, {
             id: idRaw,
@@ -349,12 +350,13 @@ function injectHistoryInterceptor(): void {
   if (document.getElementById(INTERCEPTOR_ID)) return;
   const script = document.createElement('script');
   script.id = INTERCEPTOR_ID;
+  // Execute in page context and clean up the script element afterward.
   script.textContent = `
 (() => {
   if (window.__gvHistoryInterceptor) return;
   window.__gvHistoryInterceptor = true;
   const EVENT_NAME = '${HISTORY_EVENT}';
-  const TRACK_REGEX = /chat|history|session|conversation/i;
+  const TRACK_REGEX = new RegExp('${TRACK_URL_PATTERN}', 'i');
   const shouldTrack = (rawUrl) => {
     try {
       const u = new URL(rawUrl, location.origin);

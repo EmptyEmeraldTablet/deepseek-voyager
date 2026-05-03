@@ -4,7 +4,7 @@ import type { ConversationIndexEntry, SearchIndexSnapshot, SearchResult } from '
 
 const STORAGE_KEY = 'gvSearchIndex';
 const STORAGE_VERSION: SearchIndexSnapshot['version'] = 1;
-const MAX_ENTRIES = 2000; // Limit index size to keep storage usage and search performance bounded.
+const MAX_ENTRIES = 2000; // Keeps local index size bounded (~a few MB at most) for storage/perf.
 const SAVE_DEBOUNCE_MS = 800;
 
 type Listener = () => void;
@@ -159,7 +159,7 @@ export class SearchIndexService {
 
   private scheduleSave(): void {
     if (this.saveTimer) return;
-    // Debounce saves to batch rapid updates; latest map state is persisted on flush.
+    // Debounce saves to batch rapid updates; timer flushes the latest map state automatically.
     this.saveTimer = window.setTimeout(() => {
       this.saveTimer = null;
       this.save().catch(() => undefined);
