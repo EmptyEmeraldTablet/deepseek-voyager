@@ -102,4 +102,13 @@
   ,"editInputWidthNarrow": { "message": "窄", "description": "窄编辑输入框宽度标签" }
   ,"editInputWidthWide": { "message": "宽", "description": "宽编辑输入框宽度标签" }
   ,"timelineOptions": { "message": "时间线选项", "description": "时间线选项区域标签" }
+  ,"search_placeholder": { "message": "搜索对话", "description": "搜索输入占位符" }
+  ,"search_index_start": { "message": "索引历史", "description": "开始历史索引" }
+  ,"search_index_stop": { "message": "停止", "description": "停止历史索引" }
+  ,"search_indexing": { "message": "索引中…", "description": "索引状态" }
+  ,"search_index_waiting": { "message": "等待历史接口…", "description": "等待请求状态" }
+  ,"search_index_done": { "message": "索引完成", "description": "索引完成状态" }
+  ,"search_index_error": { "message": "索引失败", "description": "索引错误状态" }
+  ,"search_no_results": { "message": "未找到结果", "description": "搜索空状态" }
+  ,"search_results_count": { "message": "{count} 条结果", "description": "搜索结果数量" }
 }

@@ -102,4 +102,13 @@
   ,"editInputWidthNarrow": { "message": "Narrow", "description": "Narrow edit input width label" }
   ,"editInputWidthWide": { "message": "Wide", "description": "Wide edit input width label" }
   ,"timelineOptions": { "message": "Timeline Options", "description": "Timeline options section label" }
+  ,"search_placeholder": { "message": "Search conversations", "description": "Search input placeholder" }
+  ,"search_index_start": { "message": "Index history", "description": "Start history indexing" }
+  ,"search_index_stop": { "message": "Stop", "description": "Stop history indexing" }
+  ,"search_indexing": { "message": "Indexing...", "description": "Indexing status" }
+  ,"search_index_waiting": { "message": "Waiting for history endpoint...", "description": "Waiting for request status" }
+  ,"search_index_done": { "message": "Index complete", "description": "Indexing complete status" }
+  ,"search_index_error": { "message": "Index failed", "description": "Indexing error status" }
+  ,"search_no_results": { "message": "No results found", "description": "Search empty state" }
+  ,"search_results_count": { "message": "{count} results", "description": "Search results count" }
 }
